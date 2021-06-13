@@ -13,6 +13,7 @@ cap = cv2.VideoCapture(0)
 
 while True:
     ret, frame = cap.read()
+    frame = cv2.flip(frame, 0)
 
     faces = faceCas.detectMultiScale(frame, 1.1, 4)
 
