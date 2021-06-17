@@ -3,7 +3,7 @@ from flask_opencv_streamer.streamer import Streamer
 from gpiozero import LED, Servo
 import time
 
-laser = LED(23)
+laser = LED(18)
 
 port = 3030
 require_login = False
@@ -32,7 +32,7 @@ try:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
             if x < 300:
                 if servoValue > .2:
-                    servo = Servo(18)
+                    servo = Servo(23)
                     servoValue -= .1
                     time.sleep(.30)
                     servo.value = servoValue
@@ -43,7 +43,7 @@ try:
 
             elif x > 300:
                 if servoValue < .8:
-                    servo = Servo(18)
+                    servo = Servo(23)
                     servoValue += .1
                     time.sleep(.30)
                     servo.value = servoValue
