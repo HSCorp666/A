@@ -32,36 +32,29 @@ try:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
             if x < 300:
                 if servoValue > .2:
-                    servo = Servo(23)
+                    servo = Servo(18)
                     servoValue -= .1
-                    time.sleep(.30)
-                    servo.value = servoValue
                     time.sleep(1)
-                
+
                     servo.detach()
                     servo = None
 
             elif x > 300:
                 if servoValue < .8:
-                    servo = Servo(23)
-                    servoValue += .1
-                    time.sleep(.30)
-                    servo.value = servoValue
+                    servo = Servo(18)
+                    servo.value += .1
                     time.sleep(1)
-                
+
                     servo.detach()
                     servo = None
-
-            cutOffSValue = str(servoValue)[:3]
-            cutOffSValue = float(cutOffSValue)
-
-        if cv2.waitKey(1) == ord('q'):
-            break
 
         streamer.update_frame(frame=frame)
 
         if not streamer.is_streaming:
             streamer.start_streaming()
+            
+        cv2.waitKey(1)
+            
 except KeyboardInterrupt:
     laser.off()
     exit()
