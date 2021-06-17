@@ -24,7 +24,7 @@ servoValue = 1
 decrementValue = .1
 rValue = 5
 
-rValue = 10
+rValue = 10   # Restricts stuff at a given point.
 
 laser.on()
 
