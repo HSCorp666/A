@@ -34,24 +34,34 @@ try:
         ret, frame = cap.read()
         frame = cv2.flip(frame, 0)
 
+        faces = faceCas.detectMultiScale(frame, 1.1, 4)
+
         for x, y, w, h in faces:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
             if x < 300:
-                unhook()
-                servo = Servo(18)
                 if servoValue > .2:
+                    servo = Servo(18)
                     servoValue -= .1
+                    time.sleep(.30)
+                    servo.value = servoValue
+                    time.sleep(1)
+                
+                    servo.detach()
+                    servo = None
 
             elif x > 300:
-                unhook()
-                servo = Servo(18)
                 if servoValue < .8:
+                    servo = Servo(18)
                     servoValue += .1
-                    
-        servo.value += servoValue
+                    time.sleep(.30)
+                    servo.value = servoValue
+                    time.sleep(1)
+                
+                    servo.detach()
+                    servo = None
 
-        cutOffSValue = str(servoValue)[:3]
-        cutOffSValue = float(cutOffSValue)
+            cutOffSValue = str(servoValue)[:3]
+            cutOffSValue = float(cutOffSValue)
 
         if cv2.waitKey(1) == ord('q'):
             break
