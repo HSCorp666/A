@@ -3,7 +3,7 @@ from flask_opencv_streamer.streamer import Streamer
 from gpiozero import LED, Servo
 import time
 
-laser = LED(18)
+laser = LED(23)
 
 port = 3030
 require_login = False
