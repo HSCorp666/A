@@ -1,58 +1,65 @@
-import cv2
+import smtplib
+from email.message import EmailMessage
 from flask_opencv_streamer.streamer import Streamer
-from gpiozero import LED, Servo
-import time
-
-laser = LED(23)
+import imghdr
+import cv2
+import os
 
 port = 3030
 require_login = False
 streamer = Streamer(port, require_login)
 
+snapshotLimiter = 10
+
+password = os.getenv('PASS')
+
+msg = EmailMessage()
+msg['Subject'] = "Person detected"
+msg['From'] = "bjmoffet85@gmail.com"
+msg['To'] = 'teaqllabs@gmail.com'
+msg.set_content("Someone has been detected at: Back door.")
+
 cap = cv2.VideoCapture(0)
-faceCas = cv2.CascadeClassifier('face.xml')
+faceCas = cv2.CascadeClassifier('/home/ian/Crypt/ComputerVision/face.xml')
 
-servoValue = 1
-decrementValue = .1
-rValue = 5
+while True:
+    ret, frame = cap.read()
 
-rValue = 10   # Restricts stuff at a given point.
+    faces = faceCas.detectMultiScale(frame, 1.1, 4)
 
-laser.on()
+    for x, y, w, h in faces:
+        cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
+    try:
+        if faces.any() and snapshotLimiter >= 10:
+            filename = "KC_Snapshot_1.jpg"
+            cv2.imwrite(filename=filename, img=frame)
 
-try:
-    while True:
-        ret, frame = cap.read()
-        frame = cv2.flip(frame, 0)
+            with open('KC_Snapshot_1.jpg', 'rb') as f:
+                file_data = f.read()
+                file_type = imghdr.what(f.name)
+                file_name = f.name
 
-        faces = faceCas.detectMultiScale(frame, 1.1, 4)
+                msg.add_attachment(file_data, maintype='image', subtype=file_type, filename=file_name)
 
-        for x, y, w, h in faces:
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
-            if x < 300:
-                servo = Servo(18)
-                servoValue -= .1
-                time.sleep(1)
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+                    smtp.login("bjmoffett85@gmail.com", password)
+                    smtp.send_message(msg)
 
-                servo.detach()
-                servo = None
+                    os.system("rm KC_Snapshot_1.jpg")
+                    snapshotLimiter = 1
 
-            elif x > 300:
-                servo = Servo(18)
-                servo.value += .1
-                time.sleep(1)
+    except AttributeError:
+        pass
 
-                servo.detach()
-                servo = None
+    if snapshotLimiter < 10:
+        snapshotLimiter += .1
 
-        streamer.update_frame(frame=frame)
+    print(snapshotLimiter)
 
-        if not streamer.is_streaming:
-            streamer.start_streaming()
-            
-        cv2.waitKey(1)
-            
-except KeyboardInterrupt:
-    laser.off()
-    exit()
+    if not streamer.is_streaming:
+        streamer.start_streaming()
+
+    streamer.update_frame(frame)
+
+    cv2.waitKey(1)
