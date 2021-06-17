@@ -3,7 +3,14 @@ from flask_opencv_streamer.streamer import Streamer
 from gpiozero import LED, Servo
 import time
 
-servo = Servo(18)
+
+def unhook():
+    global servo
+    
+    servo.detach()
+    servo = None
+
+
 laser = LED(23)
 
 port = 3030
@@ -12,6 +19,10 @@ streamer = Streamer(port, require_login)
 
 cap = cv2.VideoCapture(0)
 faceCas = cv2.CascadeClassifier('face.xml')
+
+servoValue = 1
+decrementValue = .1
+rValue = 5
 
 rValue = 10
 
@@ -23,26 +34,24 @@ try:
         ret, frame = cap.read()
         frame = cv2.flip(frame, 0)
 
-        faces = faceCas.detectMultiScale(frame, 1.1, 4)
-
         for x, y, w, h in faces:
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            if x < 300:
+                unhook()
+                servo = Servo(18)
+                if servoValue > .2:
+                    servoValue -= .1
 
-        try:
-            if faces.any() and rValue >= 10:
-                servo.value = 0.1
-                time.sleep(1)
-                servo.value = 0.9
-                time.sleep(1)
-                servo.value = 1
-                time.sleep(1)
-                servo.value = -1
-                rValue = 1
-        except AttributeError:
-            pass
+            elif x > 300:
+                unhook()
+                servo = Servo(18)
+                if servoValue < .8:
+                    servoValue += .1
+                    
+        servo.value += servoValue
 
-        if rValue < 10:
-            rValue += .2
+        cutOffSValue = str(servoValue)[:3]
+        cutOffSValue = float(cutOffSValue)
 
         if cv2.waitKey(1) == ord('q'):
             break
