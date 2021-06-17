@@ -3,14 +3,6 @@ from flask_opencv_streamer.streamer import Streamer
 from gpiozero import LED, Servo
 import time
 
-
-def unhook():
-    global servo
-    
-    servo.detach()
-    servo = None
-
-
 laser = LED(23)
 
 port = 3030
